@@ -14,17 +14,16 @@ class SkinFrictionGroup(Group):
     def setup(self):
         shape = self.options['shape']
 
-        skin_friction_roughness = 1.27 * 10**-6 
-        laminar_pctg = 3
-        mach_number = 0.85 
+        skin_friction_roughness = 0.4e-5 
+        laminar_pctg = 5
+        Mach_number = 0.85 
 
-        comp = IndepVarComp()
-        comp.add_output('speed', val = 250.)
-        comp.add_output('characteristic_length', val = 5.)
-        comp.add_output('density', val = 1.225)
-        comp.add_output('dynamic_viscosity', val = 0.0017893145130960248)
-        comp.add_output('mach_number')
-        self.add_subsystem('inputs_comp', comp, promotes=['*'])
+        # comp = IndepVarComp()
+        # comp.add_output('speed', val = 250.)
+        # comp.add_output('characteristic_length', val = 5.)
+        # comp.add_output('density', val = 1.225)
+        # comp.add_output('dynamic_viscosity', val = 0.0017893145130960248)
+        # self.add_subsystem('inputs_comp', comp, promotes=['*'])
 
         # creates component for calculating Re
         comp = PowerCombinationComp(
@@ -39,7 +38,7 @@ class SkinFrictionGroup(Group):
         )
         self.add_subsystem('Re_comp', comp, promotes=['*'])
         # creates component for calculating Re_Cutoff for subsonic and sonic flows
-        if mach_number < 0.9:
+        if Mach_number < 0.9:
             comp = PowerCombinationComp(
                 shape=shape,
                 out_name='Re_cutoff',
@@ -49,14 +48,14 @@ class SkinFrictionGroup(Group):
                 ),
             )
             self.add_subsystem('Re_cutoff_comp', comp, promotes=['*'])
-        elif mach_number > 0.9:
+        elif Mach_number > 0.9:
             comp = PowerCombinationComp(
                 shape=shape,
                 out_name='Re_cutoff',
                 coeff=44.62 * skin_friction_roughness ** -1.053,
                 powers_dict=dict(
                     characteristic_length=1.053,
-                    mach_number=1.16,
+                    Mach_number=1.16,
                 ),
             )
             self.add_subsystem('Re_cutoff_comp', comp, promotes=['*'])
@@ -93,7 +92,7 @@ class SkinFrictionGroup(Group):
         comp = GeneralOperationComp(
             shape=shape,
             out_name='skin_friction_coeff_turbulent',
-            in_names=['Re_turbulent_min', 'mach_number'],
+            in_names=['Re_turbulent_min', 'Mach_number'],
             func=func,
             deriv=deriv,
         )
@@ -121,13 +120,10 @@ if __name__ == "__main__":
     )
     prob.model.add_subsystem('skin_friction_group', skin_friction_group)
 
-
-
-
     prob.setup(check=True)
     prob['skin_friction_group.speed'] = 250.
     prob['skin_friction_group.density'] = 1.227
-    prob['skin_friction_group.mach_number'] = 0.85
+    prob['skin_friction_group.Mach_number'] = 0.85
     prob['skin_friction_group.dynamic_viscosity'] = 0.0017893145130960248
     prob['skin_friction_group.characteristic_length'] = 5.
 
