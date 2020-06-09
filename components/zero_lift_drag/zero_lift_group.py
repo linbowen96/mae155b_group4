@@ -79,11 +79,11 @@ class ZeroLiftGroup(Group):
         comp = LinearCombinationComp(
             shape = shape,
             in_names = ['C0_wing','C0_fuselage'],
-            out_name = 'C0',
+            out_name = 'CD0',
             coeffs = [1.,1.],
 
         )
-        self.add_subsystem('C0', comp, promotes=['*'])
+        self.add_subsystem('CD0', comp, promotes=['*'])
         
         
 # runs a test to see if calculated values make sense

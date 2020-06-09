@@ -14,38 +14,42 @@ comp = IndepVarComp()
 comp.add_output('altitude_km', val=0.0, units ='km')
 comp.add_output('BPR', val=5.0)
 comp.add_output('max_thrust', val=580, units='kN') #kN
-
-# model.add_subsystem('inputs_comp', comp, promotes=['*'])
+model.add_subsystem('inputs_comp', comp, promotes=['*'])
 
 comp = thrustComp()
 model.add_subsystem('thrust', comp, promotes=['*'])
 
-
-comp = ExecComp('thrus = Drag')
-comp.add_constraint('Drag', equals=73)
-comp.add_objective('thrus', scaler=1.0)
-model.add_subsystem('horiEqui_comp', comp, promotes=['*'])
-
-
 prob.model = model
 
 prob.driver = ScipyOptimizeDriver()
+prob.driver.options['debug_print'] = ['nl_cons','objs', 'desvars']
 prob.driver.options['optimizer'] = 'SLSQP'
 prob.driver.options['tol'] = 1e-15
 prob.driver.options['disp'] = True
 
+# Setup problem and add design variables, constraint, and objective
+
+prob.model.add_design_var('altitude_km', lower=0, upper=5)
+# prob.model.add_design_var('altitude', lower=10000, upper=13000)
+prob.model.add_design_var('Mach_number', lower=0.75, upper=0.85)
+# prob.model.add_constraint('aero_point_0.CL', equals=0.5)
+prob.model.add_constraint('LD', equals=18.)
+# prob.model.add_constraint(point_name + '.wing.S_ref', equals=10.0)
+prob.model.add_objective('aero_point_0.CD', scaler=1e4)
+
 prob.setup()
-prob.run_model()
+
+# prob.run_model()
 prob.run_driver()
-prob.model.list_outputs()
-prob.model.list_inputs()
+# prob.model.list_outputs()
+# prob.model.list_inputs()
 
-prob.check_partials(compact_print=True)
+# prob.check_partials(compact_print=True)
 
-print('thrust', prob['Drag'])
-print('altitude_km', prob['altitude_km'])
-print('BPR', prob['BPR'])
-print('max_thrust', prob['max_thrust'])
+# print('thrust', prob['Drag'])
+# print('altitude_km', prob['altitude_km'])
+# print('BPR', prob['BPR'])
+# print('max_thrust', prob['max_thrust'])
 
 # prob = Problem()
 

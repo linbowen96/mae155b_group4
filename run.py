@@ -4,6 +4,7 @@ from openmdao.api import Problem, Group, IndepVarComp, ExecComp, ScipyOptimizeDr
 from openaerostruct.geometry.utils import generate_mesh
 from components.oas_group import OASGroup
 from components.breguet_range.breguet_range_comp import BregRangeCo
+from weight_component.weightGroup import weightCompGroup
 
 # Create a dictionary to store options about the mesh
 mesh_dict = {'num_y' : 11,
@@ -65,42 +66,44 @@ prob.model.add_subsystem('breguet_range_comp', comp, promotes=['*'])
 oas_group = OASGroup(surface=surface)
 prob.model.add_subsystem('oas_group', oas_group, promotes=['*'])
 
+weight_group = weightCompGroup()
+prob.model.add_subsystem('weight_group', weight_group, promotes=['*'])
+
 comp = ExecComp('LD = CL/CD')
 prob.model.add_subsystem('ld_comp', comp, promotes=['*'])
 
 prob.model.connect('aero_point_0.CL', 'CL')
 prob.model.connect('aero_point_0.CD', 'CD')
+prob.model.add_design_var('alpha',lower=0)
+prob.model.add_constraint('aero_point_0.CL', equals=0.5)
+prob.model.add_objective('W_f', scaler=-1)
+
 
 # Import the Scipy Optimizer and set the driver of the problem to use
 # it, which defaults to an SLSQP optimization method
-# prob.driver = om.ScipyOptimizeDriver()
-# prob.driver.options['tol'] = 1e-9
+prob.driver = ScipyOptimizeDriver()
+prob.driver.options['debug_print'] = ['nl_cons','objs', 'desvars']
+prob.driver.options['tol'] = 1e-9
 
-# recorder = om.SqliteRecorder("aero.db")
-# prob.driver.add_recorder(recorder)
-# prob.driver.recording_options['record_derivatives'] = True
-# prob.driver.recording_options['includes'] = ['*']
-
-# Setup problem and add design variables, constraint, and objective
-#prob.model.add_design_var('wing.twist_cp', lower=-10., upper=15.)
-# prob.model.add_constraint(point_name + '.wing_perf.CL', equals=0.5)
-#prob.model.add_objective(point_name + '.wing_perf.CD', scaler=1e4)
 
 # Set up and run the optimization problem
+
 prob.setup()
+
 # prob.check_partials(compact_print=True)
-# exit()
-# prob.run_driver()
+
 prob.run_model()
+prob.run_driver()
 
-prob.model.list_outputs(prom_name=True)
+print('W_f', prob['W_f'])
+print('alpha', prob['alpha'])
 
-print(prob['aero_point_0.wing_perf.CD'][0])
 
-print(prob['aero_point_0.wing_perf.CL'][0])
+# prob.model.list_outputs(prom_name=True)
 
-print(prob['aero_point_0.CM'][1])
+# print(prob['aero_point_0.wing_perf.CD'][0])
 
-print('w_frac', prob['w_frac'])
-print('LD', prob['LD'])
+# print(prob['aero_point_0.wing_perf.CL'][0])
+
+# print(prob['aero_point_0.CM'][1])
 

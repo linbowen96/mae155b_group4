@@ -57,7 +57,7 @@ class vtailWeightComp(ExplicitComponent):
         self.options.declare('Lt', types=float)
         self.options.declare('AR_vt', types=float)
         self.options.declare('sweepvt', types=float)
-        self.options.declare('tc',types=float)
+        self.options.declare('t_c',types=float)
     
 
     def setup(self):
@@ -73,7 +73,7 @@ class vtailWeightComp(ExplicitComponent):
         Lt = self.options['Lt']
         AR_vt = self.options['AR_vt']
         sweepvt = self.options['sweepvt']
-        tc = self.options['tc']
+        t_c = self.options['t_c']
        
 
         W0 = inputs['W0']
@@ -82,14 +82,14 @@ class vtailWeightComp(ExplicitComponent):
         cosSweepvt = np.cos(sweepvt * np.pi / 180)
         Kz = Lt
 
-        outputs['W_vt'] = 0.0026 * W0 ** 0.556 * N ** 0.536 * S_vt ** 0.5 * Lt ** -0.5 * Kz ** 0.875 * cosSweepvt ** -1 * AR_vt ** 0.35 * tc ** -0.5
+        outputs['W_vt'] = 0.0026 * W0 ** 0.556 * N ** 0.536 * S_vt ** 0.5 * Lt ** -0.5 * Kz ** 0.875 * cosSweepvt ** -1 * AR_vt ** 0.35 * t_c ** -0.5
 
     def compute_partials(self, inputs, partials):
         N = self.options['N']
         Lt = self.options['Lt']
         AR_vt = self.options['AR_vt']
         sweepvt = self.options['sweepvt']
-        tc = self.options['tc']
+        t_c = self.options['t_c']
 
         W0 = inputs['W0']
         S_vt = inputs['S_vt']
@@ -97,5 +97,5 @@ class vtailWeightComp(ExplicitComponent):
         cosSweepvt = np.cos(sweepvt * np.pi / 180)
         Kz = Lt
 
-        partials['W_vt', 'W0'] = 0.0026 * 0.556 * W0 ** -0.444 * N ** 0.536 * S_vt ** 0.5 * Lt ** -0.5 * Kz ** 0.875 * cosSweepvt ** -1 * AR_vt ** 0.35 * tc ** -0.5
-        partials['W_vt', 'S_vt'] = 0.0026 * W0 ** 0.556 * N ** 0.536 * 0.5 * S_vt ** -0.5 * Lt ** -0.5 * Kz ** 0.875 * cosSweepvt ** -1 * AR_vt ** 0.35 * tc ** -0.5
+        partials['W_vt', 'W0'] = 0.0026 * 0.556 * W0 ** -0.444 * N ** 0.536 * S_vt ** 0.5 * Lt ** -0.5 * Kz ** 0.875 * cosSweepvt ** -1 * AR_vt ** 0.35 * t_c ** -0.5
+        partials['W_vt', 'S_vt'] = 0.0026 * W0 ** 0.556 * N ** 0.536 * 0.5 * S_vt ** -0.5 * Lt ** -0.5 * Kz ** 0.875 * cosSweepvt ** -1 * AR_vt ** 0.35 * t_c ** -0.5

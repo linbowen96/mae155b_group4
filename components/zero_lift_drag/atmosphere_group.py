@@ -18,10 +18,6 @@ class AtmosphereGroup(Group):
     def setup(self):
         shape = self.options['shape']
 
-
-
-        group = Group()
-
         comp = PowerCombinationComp(
             shape=shape,
             out_name='altitude_km',
@@ -46,10 +42,21 @@ class AtmosphereGroup(Group):
         self.add_subsystem('viscosity_comp', comp, promotes=['*'])
 
         comp = PowerCombinationComp(
+            shape = shape,
+            out_name = 're',
+            powers_dict=dict(
+                dynamic_viscosity = -1,
+                characteristic_length = 1,
+                v=1,
+            ),
+        )
+        self.add_subsystem('reynolds_number_comp', comp, promotes=['*'])
+
+        comp = PowerCombinationComp(
             shape=shape,
             out_name='Mach_number',
             powers_dict=dict(
-                speed=1.,
+                v=1.,
                 sonic_speed=-1.,
             ),
         )
@@ -57,11 +64,20 @@ class AtmosphereGroup(Group):
 
         comp = PowerCombinationComp(
             shape=shape,
+            out_name='rho',
+            powers_dict=dict(
+                density=1.,
+            ),
+        )
+        self.add_subsystem('rho_comp', comp, promotes=['*'])        
+
+        comp = PowerCombinationComp(
+            shape=shape,
             out_name='dynamic_pressure',
             coeff=0.5,
             powers_dict=dict(
-                density=1.,
-                speed=2.,
+                rho=1.,
+                v=2.,
             ),
         )
         self.add_subsystem('dynamic_pressure_comp', comp, promotes=['*'])
